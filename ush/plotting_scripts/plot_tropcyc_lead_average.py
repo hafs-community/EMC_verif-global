@@ -6,6 +6,7 @@ import plot_util as plot_util
 import pandas as pd
 import warnings
 import matplotlib
+import math
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
@@ -33,37 +34,71 @@ plt.rcParams['legend.handlelength'] = 1.25
 plt.rcParams['legend.borderaxespad'] = 0
 plt.rcParams['legend.columnspacing'] = 1.0
 plt.rcParams['legend.frameon'] = False
-if float(matplotlib.__version__[0:3]) >= 3.3:
-    plt.rcParams['date.epoch'] = '0000-12-31T00:00:00'
 x_figsize, y_figsize = 14, 7
 legend_bbox_x, legend_bbox_y = 0, 1
 legend_fontsize = 13
 legend_loc = 'upper left'
 legend_ncol = 1
 title_loc = 'center'
+#model_obs_plot_settings_dict = {
+#    'model1': {'color': '#000000',
+#               'marker': 'o', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 3},
+#    'model2': {'color': '#FB2020',
+#               'marker': '^', 'markersize': 7,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model3': {'color': '#00DC00',
+#               'marker': 'x', 'markersize': 7,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model4': {'color': '#1E3CFF',
+#               'marker': '+', 'markersize': 7,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model5': {'color': '#E69F00',
+#               'marker': 'o', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model6': {'color': '#56B4E9',
+#               'marker': 'o', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model7': {'color': '#696969',
+#               'marker': 's', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model8': {'color': '#8400C8',
+#               'marker': 'D', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model9': {'color': '#D269C1',
+#               'marker': 's', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'model10': {'color': '#F0E492',
+#               'marker': 'o', 'markersize': 6,
+#               'linestyle': 'solid', 'linewidth': 1.5},
+#    'obs': {'color': '#AAAAAA',
+#            'marker': 'None', 'markersize': 0,
+#            'linestyle': 'solid', 'linewidth': 2}
+#}
+# modified by Yan Jin
 model_obs_plot_settings_dict = {
     'model1': {'color': '#000000',
-               'marker': 'o', 'markersize': 6,
+               'marker': 'o', 'markersize': 0,
                'linestyle': 'solid', 'linewidth': 3},
-    'model2': {'color': '#FB2020',
-               'marker': '^', 'markersize': 7,
+    'model2': {'color': '#8400C8',
+               'marker': 'o', 'markersize': 7,
                'linestyle': 'solid', 'linewidth': 1.5},
     'model3': {'color': '#00DC00',
-               'marker': 'x', 'markersize': 7,
+               'marker': 'o', 'markersize': 7,
                'linestyle': 'solid', 'linewidth': 1.5},
-    'model4': {'color': '#1E3CFF',
-               'marker': '+', 'markersize': 7,
+    'model4': {'color': '#56B4E9',
+               'marker': 'o', 'markersize': 7,
                'linestyle': 'solid', 'linewidth': 1.5},
     'model5': {'color': '#E69F00',
                'marker': 'o', 'markersize': 6,
                'linestyle': 'solid', 'linewidth': 1.5},
-    'model6': {'color': '#56B4E9',
+    'model6': {'color': '#1E3CFF',
                'marker': 'o', 'markersize': 6,
                'linestyle': 'solid', 'linewidth': 1.5},
     'model7': {'color': '#696969',
                'marker': 's', 'markersize': 6,
                'linestyle': 'solid', 'linewidth': 1.5},
-    'model8': {'color': '#8400C8',
+    'model8': {'color': '#FB2020',
                'marker': 'D', 'markersize': 6,
                'linestyle': 'solid', 'linewidth': 1.5},
     'model9': {'color': '#D269C1',
@@ -88,7 +123,8 @@ nws_logo_img_array = matplotlib.image.imread(
 nws_logo_xpixel_loc = x_figsize*plt.rcParams['figure.dpi']*0.9
 nws_logo_ypixel_loc = y_figsize*plt.rcParams['figure.dpi']*0.865
 nws_logo_alpha = 0.5
-case_num_label_x_loc, case_num_label_y_loc = 1.015, -0.215
+# modified by Yan Jin
+case_num_label_x_loc, case_num_label_y_loc = -0.05, -0.15
 case_num_tick_y_loc = case_num_label_y_loc + 0.015
 
 # Read in environment variables
@@ -103,6 +139,8 @@ model_tmp_atcf_name_list = os.environ['model_tmp_atcf_name_list'].split(',')
 model_plot_name_list = os.environ['model_plot_name_list'].split(',')
 basin = os.environ['basin']
 plot_CI_bars = os.environ['plot_CI_bars']
+model_type = os.environ['tropcyc_model_type']
+print(model_type)
 if 'tc' in list(os.environ.keys()):
     plot_info = os.environ['tc']
     year = plot_info.split('_')[1]
@@ -153,10 +191,16 @@ if os.path.exists(summary_tcst_filename):
         )
         for COLUMN_group in summary_tcst_data_groupby_COLUMN.groups.keys():
             print("Creating plot for "+COLUMN_group)
-            if COLUMN_group == 'ABS(AMAX_WIND-BMAX_WIND)':
+            if COLUMN_group == 'AMAX_WIND-BMAX_WIND':
+                formal_stat_name = 'Intensity Bias (knots)'
+            elif COLUMN_group == 'ABS(AMAX_WIND-BMAX_WIND)':
                 formal_stat_name = 'Absolute Intensity Error (knots)'
             elif COLUMN_group == 'ABS(TK_ERR)':
                 formal_stat_name =  'Absolute Track Error (nm)'
+            elif COLUMN_group == 'ALTK_ERR':
+                formal_stat_name =  'Along Track Bias (nm)'
+            elif COLUMN_group == 'CRTK_ERR':
+                formal_stat_name =  'Cross Track Bias (nm)'
             else:
                 formal_stat_name = COLUMN_group
             summary_tcst_data_COLUMN = (
@@ -173,8 +217,10 @@ if os.path.exists(summary_tcst_filename):
                 continue
             stat_max = np.ma.masked_invalid(np.nan)
             fig, ax = plt.subplots(1,1,figsize=(x_figsize, y_figsize))
-            ax.grid(True)
+            ax.grid(True, color = 'grey', linestyle = '--')
+            ax.axhline(0, color = 'black')
             ax.set_xlabel('Forecast Hour')
+            ax.xaxis.set_label_coords(0.5, -0.15)
             if len(fhrs) > 15:
                 ax.set_xticks(fhrs[::2])
                 ax.set_xticks(fhrs, minor=True)
@@ -195,8 +241,10 @@ if os.path.exists(summary_tcst_filename):
             )
             for AMODEL in model_tmp_atcf_name_list:
                 AMODEL_idx = model_tmp_atcf_name_list.index(AMODEL)
-                AMODEL_plot_name = (model_plot_name_list[AMODEL_idx]+' '
-                                    +'('+model_atcf_name_list[AMODEL_idx]+')')
+                #AMODEL_plot_name = (model_plot_name_list[AMODEL_idx]+' '
+                #                    +'('+model_atcf_name_list[AMODEL_idx]+')')
+                # modified by Yan Jin
+                AMODEL_plot_name = model_plot_name_list[AMODEL_idx]
                 print("Plotting "+AMODEL_plot_name)
                 model_num+=1
                 model_plot_settings_dict = (
@@ -330,7 +378,19 @@ if os.path.exists(summary_tcst_filename):
             preset_y_axis_tick_min = ax.get_yticks()[0]
             preset_y_axis_tick_max = ax.get_yticks()[-1]
             preset_y_axis_tick_inc = ax.get_yticks()[1] - ax.get_yticks()[0]
-            y_axis_min = 0
+            
+            # modified by Yan Jin
+            #y_axis_min = math.floor(preset_y_axis_tick_min - 10)
+            #y_axis_max = math.ceil(preset_y_axis_tick_max + 10)
+            if plot_CI_bars == 'YES':
+                y_axis_min = math.ceil(preset_y_axis_tick_max) * (-1.0) - 50.0
+                y_axis_max = math.ceil(preset_y_axis_tick_max) + 50.0
+            else:
+                y_axis_min = math.floor(preset_y_axis_tick_min)
+                y_axis_max = math.ceil(preset_y_axis_tick_max)
+               
+                #y_axis_min = -max(abs(math.floor(preset_y_axis_tick_min)), abs(math.ceil(preset_y_axis_tick_max)))  
+            
             y_axis_tick_inc = preset_y_axis_tick_inc
             if np.ma.is_masked(stat_max):
                 y_axis_max = preset_y_axis_tick_max
@@ -338,6 +398,10 @@ if os.path.exists(summary_tcst_filename):
                 y_axis_max = preset_y_axis_tick_max
                 while y_axis_max < stat_max:
                     y_axis_max = y_axis_max + y_axis_tick_inc
+
+            if COLUMN_group == 'ABS(TK_ERR)' or COLUMN_group == 'ABS(AMAX_WIND-BMAX_WIND)':
+                y_axis_min = 0
+            #y_axis_max = y_axis_max + 50.0
             ax.set_yticks(
                 np.arange(y_axis_min,
                           y_axis_max+y_axis_tick_inc,
@@ -348,6 +412,10 @@ if os.path.exists(summary_tcst_filename):
             if stat_max >= ax.get_ylim()[1]:
                 while stat_max >= ax.get_ylim()[1]:
                     y_axis_max = y_axis_max + y_axis_tick_inc
+                    y_axis_min = y_axis_max * (-1.0) - 50.0
+                    if COLUMN_group == 'ABS(TK_ERR)' or COLUMN_group == 'ABS(AMAX_WIND-BMAX_WIND)':
+                       y_axis_min = 0
+                    y_axis_max = y_axis_max + 50.0
                     ax.set_yticks(
                         np.arange(y_axis_min,
                                   y_axis_max +  y_axis_tick_inc,
@@ -400,7 +468,7 @@ if os.path.exists(summary_tcst_filename):
                         num_cases_str = str(int(num_cases))
                         ax.annotate(num_cases_str,
                                     xy=(x_axis_ticks_fraction[fhr_idx],
-                                        case_num_tick_y_loc),
+                                        case_num_tick_y_loc), size=12,
                                     xycoords='axes fraction', ha='center')
                     else:
                         print("Working with nonhomogeneous sample for fhr "
@@ -414,16 +482,18 @@ if os.path.exists(summary_tcst_filename):
                 'edgecolor': 'black'
             }
             x_axis_tick_inc = fhrs[1] - fhrs[0]
-            if len(ax.lines) != 0:
-                ax.text(legend_box.x1 + (x_axis_tick_inc * 0.75),
-                        ax.get_ylim()[1] - (0.15 * y_axis_tick_inc),
-                        'Note: statistical significance at the 95% '
-                        +'confidence level where confidence intervals '
-                        +'do not intersect',
-                        ha='left', va='top', fontsize=10,
-                        bbox=props, transform=ax.transData)
+            # modified by Yan Jin       
+            #if len(ax.lines) != 0:
+            #    ax.text(legend_box.x1 + (x_axis_tick_inc * 0.75),
+            #            ax.get_ylim()[1] - (0.15 * y_axis_tick_inc),
+            #            'Note: statistical significance at the 95% '
+            #            +'confidence level where confidence intervals '
+            #            +'do not intersect',
+            #            ha='left', va='top', fontsize=10,
+            #            bbox=props, transform=ax.transData)
             # Build formal plot title
             full_title = formal_stat_name+'\n'
+            #full_title = ""
             if basin == 'AL':
                 formal_basin = 'Atlantic'
             elif basin == 'CP':
@@ -435,12 +505,9 @@ if os.path.exists(summary_tcst_filename):
             if len(plot_info) == 2:
                 full_title = full_title+formal_basin+' Mean\n'
             else:
-                full_title = (
-                    full_title+str(tc_num)+'-'+name.title()+' '
-                    +'('+formal_basin+' '+year+')\n'
-                )
-            full_title = (full_title+'Cycles: '+', '.join(init_hour_list)+', '
-                          +' Valid Hours: '+', '.join(valid_hour_list))
+                full_title = full_title + name.title().upper() + ' ' + '(' + basin + str(tc_num) + ' ' + year + ')'
+            #full_title = (full_title+'Cycles: '+', '.join(init_hour_list)+', '
+            #              +' Valid Hours: '+', '.join(valid_hour_list))
             ax.set_title(full_title)
             noaa_img = fig.figimage(noaa_logo_img_array,
                                     noaa_logo_xpixel_loc, noaa_logo_ypixel_loc,
@@ -455,7 +522,7 @@ if os.path.exists(summary_tcst_filename):
             savefig_name = os.path.join(
                 plotting_out_dir_imgs,
                 COLUMN_group.replace('(', '').replace(')', '')
-                +'_fhrmean_'+plot_info+'.png'
+                +'_fhrmean_'+plot_info+'_'+model_type+'.png'
             )
             print("Saving image as "+savefig_name)
             plt.savefig(savefig_name)

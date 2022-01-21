@@ -29,10 +29,10 @@ mkdir -p $RUN
 cd $RUN
 
 # Check machine to be sure we can get the data
-if [[ "$machine" =~ ^(HERA|ORION|WCOSS_C|S4|JET)$ ]]; then
-    echo "ERROR: Cannot run ${RUN} on ${machine}, cannot retrieve data from web in queue ${QUEUE}"
-    exit
-fi
+#if [[ "$machine" =~ ^(HERA|ORION|WCOSS_C|S4|JET)$ ]]; then
+#    echo "ERROR: Cannot run ${RUN} on ${machine}, cannot retrieve data from web in queue ${QUEUE}"
+#    exit
+#fi
 
 # Check user's configuration file
 python $USHverif_global/check_config.py

@@ -1,4 +1,4 @@
-#!/bin/sh -xe
+#!/bin/sh -e
 ##---------------------------------------------------------------------------
 ##---------------------------------------------------------------------------
 ## NCEP EMC GLOBAL MODEL VERIFICATION
@@ -149,12 +149,13 @@ elif [ $machine = "S4" ]; then
     export ACCOUNT="star"
     export QUEUE="s4"
     export QUEUESHARED="s4"
-    export QUEUESERV="serial"
+    export QUEUESERV="service"
     export PARTITION_BATCH="s4"
     export nproc="32"
     export MPMD="YES"
 elif [ $machine = "JET" ]; then
-    export ACCOUNT="hfv3gfs"
+#    export ACCOUNT="hfv3gfs"
+    export ACCOUNT="hwrfv3"
     export QUEUE="batch"
     export QUEUESHARED="batch"
     export QUEUESERV="service"
@@ -236,8 +237,13 @@ fi
 export prepbufr_prod_upper_air_dir="/gpfs/dell1/nco/ops/com/gfs/prod"
 export prepbufr_prod_conus_sfc_dir="/gpfs/dell1/nco/ops/com/nam/prod"
 export ccpa_24hr_prod_dir="/gpfs/dell1/nco/ops/com/verf/prod"
-export nhc_atcfnoaa_bdeck_dir="/gpfs/dell2/nhc/noscrub/data/atcf-noaa/btk"
-export nhc_atcfnoaa_adeck_dir="/gpfs/dell2/nhc/noscrub/data/atcf-noaa/aid_nws"
+#export nhc_atcfnoaa_bdeck_dir="/gpfs/dell2/nhc/noscrub/data/atcf-noaa/btk"
+#export nhc_atcfnoaa_adeck_dir="/gpfs/dell2/nhc/noscrub/data/atcf-noaa/aid_nws"
+#export nhc_atcfnoaa_bdeck_dir="/gpfs/dell2/emc/modeling/noscrub/Jiayi.Peng/atcf-noaa/btk"
+#export nhc_atcfnoaa_adeck_dir="/gpfs/dell2/emc/modeling/noscrub/Jiayi.Peng/atcf-noaa/aid_nws"
+export nhc_atcfnoaa_bdeck_dir="/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/btk"
+export nhc_atcfnoaa_adeck_dir="/lfs4/HFIP/hwrf-data/hwrf-input/abdeck/aid_nws"
+
 export nhc_atcfnavy_bdeck_dir="/gpfs/dell2/nhc/noscrub/data/atcf-navy/btk"
 export nhc_atcfnavy_adeck_dir="/gpfs/dell2/nhc/noscrub/data/atcf-navy/aid"
 
