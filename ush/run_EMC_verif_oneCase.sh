@@ -33,9 +33,9 @@ echo "in config/"
 [ -e config.vrfy.tcTmp ] && rm config.vrfy.tcTmp
 cp $HOMEverif_global/parm/config/config.vrfy.tc config.vrfy.tcTmp
 echo "start to modify"
-sed -i -e 's#start_date="20210101"#start_date="'$tcBeginTime'"#g' \
-       -e 's#end_date="20211231"#end_date="'$tcEndTime'"#g' \ 
-       -e 's#tropcyc_storm_list="AL_2021_ALLNAMED"#tropcyc_storm_list="'$tcCase'"#g' config.vrfy.tcTmp
+sed -i 's#start_date="20210101"#start_date="'$tcBeginTime'"#g' config.vrfy.tcTmp
+sed -i 's#end_date="20211231"#end_date="'$tcEndTime'"#g' config.vrfy.tcTmp
+sed -i 's#tropcyc_storm_list="AL_2021_ALLNAMED"#tropcyc_storm_list="'$tcCase'"#g' config.vrfy.tcTmp
 
 $HOMEverif_global/ush/run_verif_global.sh config.vrfy.tcTmp
 
