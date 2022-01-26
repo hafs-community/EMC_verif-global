@@ -1,4 +1,17 @@
 #!/bin/sh
+# This script is to run the EMC-verif_global package 
+# HOW TO USE: run_EMC_verif_oneCase.sh AL052021 ELSA 20210630 20210710
+# 1st arg: TC case, AL: basin, 05: TC number; 2021: year
+# 2nd arg: TC name
+# 3rd arg: TC start date in yyyymmdd format
+# 4th arg: TC end date in yyyymmdd format
+
+# USERS NEED TO MODIFY:
+# OUTPUTROOT: it is defined in parm/config/config.vrfy.tc
+# INTPUT a/b-deck: these two directories are defined in ush/set_up_verif_global.sh
+# account info: it is defined in ush/set_up_verif_global.sh
+
+# ---------------------------------------------------------------------------------- 
 export HOMEverif_global=`eval "cd ../;pwd"`  # Home base of verif_global
 export OUTPUTDIR="/mnt/lfs4/HFIP/hwrfv3/Yan.Jin/ptmp/veri4TC/"
 
@@ -28,7 +41,6 @@ tcCase=$basin"_"$tcYear"_"$tcName
 tcNameNum="_"$tcId"_"$tcName
 
 echo "$tcNameNum, $tcCase, $tcBeginTime, $tcEndTime"
-#output example: _AL052021_ELSA, AL_2021_ELSA, 20210630, 20210710
 
 #modify config file
 echo "modify config file"
